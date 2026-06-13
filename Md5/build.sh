@@ -1,6 +1,13 @@
 #!/bin/bash
 
-mkdir -p build/classes
-javac -d build/classes src/IfxHash.java
-jar cf build/ifxhash.jar -C build/classes .
+# Compile
+
+javac -d build/classes -cp lib/* src/main/*.java
+
+# Build jar
+
+jar --create \
+    --file build/ifxhash.jar \
+    --manifest MANIFEST.MF \
+    -C build/classes .
 

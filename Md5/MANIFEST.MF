@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Created-By: Vicente Salvador
+Implementation-Title: ifxhash UDR functions
+Implementation-Version: 1.0.0
+Implementation-Vendor: DEISTER
