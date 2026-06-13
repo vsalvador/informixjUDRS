@@ -28,12 +28,6 @@ EXECUTE PROCEDURE sqlj.install_jar(
 );
 ```
 
-To verify the installation:
-
-```sql
-SELECT * FROM sysmaster:sysjars;
-```
-
 ## Register the SQL Functions
 
 Create the SQL wrapper functions that expose the Java methods to Informix.
@@ -127,12 +121,24 @@ SELECT digest('SHA3-256', 'Hello World') FROM sysmaster:sysdual;
 
 ## Uninstall
 
-To remove the JAR from the database:
+First you should drop the registered functions using the registered jar:
+
+```sql
+DROP FUNCTION IF EXISTS digest;
+DROP FUNCTION IF EXISTS md5;
+DROP FUNCTION IF EXISTS sha256_hex;
+DROP FUNCTION IF EXISTS sha512_hex;
+```
+
+Then remove the JAR from the database:
 
 ```sql
 EXECUTE PROCEDURE sqlj.remove_jar('ifxhash_jar');
 ```
 
-Then drop the registered functions as required.
+To check if other functions have been registered using this jar file, you can execute this SQL statement:
 
+```sql
+select 'DROP FUNCTION ' || procname || ';' from sysprocedures where externalname matches 'ifxhash_jar*'
 
+```
