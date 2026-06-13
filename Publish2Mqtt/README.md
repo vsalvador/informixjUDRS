@@ -9,3 +9,16 @@ Typical use cases:
 - Event-driven architectures
 - Real-time synchronization
 - Message-driven workflows
+
+## Requirements
+
+- Java 17+
+- GNU Make
+
+## Build
+
+```bash
+make build
+```
+
+
