@@ -168,7 +168,7 @@ create function generate_uuid() returning  CHAR(36) external name "UUIDGenerator
 SELECT generate_uuid() FROM sysmaster:sysdual;
 ```
 
-Result:
+Example result:
 ```txt
 (expression)  7bdcfcfb-1a9f-4e13-98db-49d2c5932143
 ```
