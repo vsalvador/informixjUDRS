@@ -14,7 +14,7 @@ import java.util.Properties;
  * MQTT publisher utility.
  *
  * This class loads MQTT connection parameters from
- * $INFORMIXDIR/etc/mqtt.conf and publishes a JSON payload
+ * $INFORMIXDIR/etc/mqtt.properties and publishes a JSON payload
  * to an MQTT topic.
  *
  * Topics can contain placeholders prefixed with '%'
@@ -81,7 +81,7 @@ public class Publish2Mqtt {
 
         debugLog("**** Start");
 
-        // Load configuration from mqtt.conf
+        // Load configuration from mqtt.properties
         loadConfiguration();
 
         debugLog("Configuration loaded");
@@ -186,7 +186,7 @@ public class Publish2Mqtt {
     /**
      * Loads MQTT configuration from:
      *
-     *   $INFORMIXDIR/etc/mqtt.conf
+     *   $INFORMIXDIR/etc/mqtt.properties
      *
      * Expected properties:
      *
@@ -201,7 +201,7 @@ public class Publish2Mqtt {
 
         Properties properties = new Properties();
 
-        String configFilePath = System.getenv("INFORMIXDIR") + "/etc/mqtt.conf";
+        String configFilePath = System.getenv("INFORMIXDIR") + "/etc/mqtt.properties";
 
         try (InputStream input = new FileInputStream(configFilePath)) {
 
