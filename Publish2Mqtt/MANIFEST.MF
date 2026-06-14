@@ -4,5 +4,9 @@ Implementation-Title: ifxhash UDR functions
 Implementation-Version: 1.0.0
 Implementation-Vendor: DEISTER
 Class-Path: lib/json-20210307.jar lib/org.eclipse.paho.client.mqttv3-1.2.5.jar
+register-class-name: com.deister.judr.Publish2Mqtt
+register-class-prefix: j_
+register-class-default-properties: parallizable, variant
+register-class-default-grantee: public, informix
 Commented-Main-Class: com.deister.udr.IfxHash
 UDR-Notes: classpath lib is folder relative to main jar location

@@ -1,4 +1,4 @@
-//package com.deister.judr;
+package com.deister.judr;
 
 import org.eclipse.paho.client.mqttv3.*;
 import org.json.JSONObject;

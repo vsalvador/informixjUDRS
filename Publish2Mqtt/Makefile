@@ -1,3 +1,5 @@
+#!/usr/bin/make -f
+
 PROJECT_NAME=PublishMQTT
 
 SRC_DIR=src/main
@@ -8,7 +10,8 @@ LIB_DIR=lib
 
 JAR_FILE=$(DIST_DIR)/$(PROJECT_NAME).jar
 
-INSTALL_DIR=$(INFORMIXDIR)/extend/krakatoa
+INST_DIR=$(INFORMIXDIR)/extend/krakatoa
+LIBS_DIR=$(INFORMIXDIR)/libjars
 
 JAVA_SOURCES := $(shell find $(SRC_DIR) -name "*.java")
 
@@ -33,13 +36,20 @@ install: build
 		exit 1; \
 	fi
 
-	@echo "Installing to $(INSTALL_DIR)..."
+	@if [ ! -d "$(INST_DIR)" ]; then \
+		echo "WARNING: $(INST_DIR) does not exists. Creating..."; \
+		mkdir -p $(INST_DIR); \
+	fi
 
-	mkdir -p $(INSTALL_DIR)
+	@if [ ! -d "$(LIBS_DIR)" ]; then \
+		echo "WARNING: $(LIBS_DIR) does not exists. Creating..."; \
+		mkdir -p $(LIBS_DIR); \
+	fi
 
-	cp $(JAR_FILE) $(INSTALL_DIR)/
-	cp $(LIB_DIR)/*.jar $(INSTALL_DIR)/
-
+	@echo "Installing to $(INST_DIR)..."
+	cp $(JAR_FILE) $(INST_DIR)/
+	@echo "Copying jar libraries to $(LIBS_DIR)..."
+	cp $(LIB_DIR)/*.jar $(LIBS_DIR)/
 	@echo "Installation complete."
 
 test:
