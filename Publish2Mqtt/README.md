@@ -117,20 +117,6 @@ DATABASE xxx;
 EXECUTE PROCEDURE sqlj.install_jar ('file:$INFORMIXDIR/extend/krakatoa/MqttPublisher.jar', 'MqttPublisher', 1);
 
 
-### Alternative manual installation procedure
-
-Using dbaccess, connecto to the database which tables you want to replicate and define the replication procedure:
-
-```sql
-DROP PROCEDURE IF EXISTS json2mqtt;
-
-CREATE PROCEDURE j_json2mqtt(lvarchar)
-  external name 'MqttPublisher.Json2Mqtt(java.lang.String)'
-  language java;
-
-grant execute on procedure json2mqtt(lvarchar) to public;
-```
-
 ### Test environment
 
 To test if jar libraries are properly installed, you can connect to any database using dbaccess and execute the publish procedure directly:
@@ -141,7 +127,7 @@ execute procedure j_Json2Mqtt('{"operation":"update", "table":"state", "owner":"
 execute procedure j_Json2Mqtt('{"operation":"delete", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695638244, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"UK"}}');
 ```
 
-## Define loppback replication
+## Define loopback replication
 
 This readme is not intended to explain in detail what loopback replication is or how to define it properly. This are just notes to show some examples of commands and configuration steps.
 
@@ -222,19 +208,13 @@ CREATE TABLE IF NOT EXISTS state(
   sname VARCHAR(40)
 );
 
-CREATE PROCEDURE IF NOT EXISTS json2mqtt(lvarchar)
-  external name 'MqttPublisher.Json2Mqtt(java.lang.String)'
-  language java;
-
-grant execute on procedure json2mqtt(lvarchar) to public;
-
 ```
 
 Define the ER replication pushing to MQTT broker. Shell commands to define and start the replicate are:
 
 ```bash
 cdr define replicate repl_state -C always -S row -A -R \
-    --jsonsplname=json2mqtt \
+    --jsonsplname=j_json2mqtt \
     "P testmqtt@g_informix:informix.state" "select * from informix.state" \
     "R testmqtt@g_loopback:informix.state" "select * from informix.state"
 
@@ -258,7 +238,7 @@ by executing this SQL statements in your database:
 
 ```sql
 DROP PROCEDURE IF EXISTS json2mqtt;
-CREATE PROCEDURE json2mqtt(lvarchar)
+CREATE PROCEDURE j_json2mqtt(lvarchar)
   external name 'com.deister.judr.Publish2Mqtt.Json2Mqtt(java.lang.String)'
   language java;
 
