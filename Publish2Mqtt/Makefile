@@ -17,7 +17,7 @@ JAVA_SOURCES := $(shell find $(SRC_DIR) -name "*.java")
 
 build: $(JAR_FILE)
 
-$(JAR_FILE): $(JAVA_SOURCES)
+$(JAR_FILE): $(JAVA_SOURCES) MANIFEST.MF
 	@echo "Compiling Java sources..."
 	javac \
 		-cp "$(LIB_DIR)/*" \
@@ -28,6 +28,7 @@ $(JAR_FILE): $(JAVA_SOURCES)
 	mkdir -p $(DIST_DIR)
 	jar --create --file $(JAR_FILE) \
 	    --manifest MANIFEST.MF \
+            judr.properties \
 	    -C $(CLASSES_DIR) .
 
 install: build

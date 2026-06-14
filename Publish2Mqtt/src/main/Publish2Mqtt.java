@@ -1,7 +1,4 @@
-package com.deister.judr;
-
-import org.eclipse.paho.client.mqttv3.*;
-import org.json.JSONObject;
+//package com.deister.judr;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,6 +6,9 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
+
+import org.eclipse.paho.client.mqttv3.*;
+import org.json.JSONObject;
 
 /**
  * MQTT publisher utility.
@@ -56,15 +56,6 @@ public class Publish2Mqtt {
     private static final int DEFAULT_QOS_LEVEL = 0;
 
     /**
-     * Test entry point.
-     *
-     * Publishes a sample JSON message.
-     */
-    //public static void main(String[] args) {
-    //    Json2Mqtt("{\"message\": \"Cadena de prueba ejecutada desde main()\"}");
-    //}
-
-    /**
      * Publishes a JSON payload to the configured MQTT broker.
      *
      * Processing flow:
@@ -77,7 +68,7 @@ public class Publish2Mqtt {
      *
      * @param jsonString JSON message to publish.
      */
-    public static void Json2Mqtt(String jsonString) {
+    public static void json2mqtt(String jsonString) {
 
         debugLog("**** Start");
 

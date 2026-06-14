@@ -11,7 +11,7 @@ Typical use cases:
 - Message-driven workflows
 
 
-`MqttPublisher` is a Java utility class that publishes JSON messages to an MQTT broker using the Eclipse Paho MQTT client library.
+`PublishMqtt` is a Java utility class that publishes JSON messages to an MQTT broker using the Eclipse Paho MQTT client library.
 
 The class:
 
@@ -66,11 +66,11 @@ $INFORMIXDIR/etc/mqtt.conf
 ```properties
 brokerUrl=tcp://mqtt.example.com:1883
 clientId=
-username=myuser
-password=mypassword
-topic=sensors/%device
+#username=myuser
+#password=mypassword
+topic=informix/%database/%table
 qosLevel=0 # QoS defined here (0, 1, or 2)
-debug=true
+debug=false
 ```
 
 ## Notes and Limitations
@@ -106,25 +106,26 @@ Change the JVPCLASSPATH parameter on $INFORMIXDIR/etc/$ONCONFIG to include the r
 ```txt
 JVPCLASSPATH $INFORMIXDIR/extend/krakatoa/krakatoa.jar:$INFORMIXDIR/libjars/json-20210307.jar:$INFORMIXDIR/libjars/org.eclipse.paho.client.mqttv3-1.2.5.jar
 ```
-### Configure mqtt.conf file
+### Configure mqtt.properties file
 
-Copy the mqtt.conf file to $INFORMIXDIR/etc/mqtt.conf
-Edit mqtt.conf file and set up the proper parameters to connect to MQTT broker
+Copy the mqtt.properties file to $INFORMIXDIR/etc/mqtt.properties
+Edit mqtt.properties file and set up the proper parameters to connect to MQTT broker
 
-### Install jar
+### Install jar and deploy procedures
 
+```sql
 DATABASE xxx;
-EXECUTE PROCEDURE sqlj.install_jar ('file:$INFORMIXDIR/extend/krakatoa/MqttPublisher.jar', 'MqttPublisher', 1);
-
+EXECUTE PROCEDURE sqlj.install_jar('file:$INFORMIXDIR/extend/krakatoa/PublishMQTT.jar', 'Publish2Mqtt', 1);
+```
 
 ### Test environment
 
-To test if jar libraries are properly installed, you can connect to any database using dbaccess and execute the publish procedure directly:
+To test if jar libraries are properly installed, you can connect to the database where the jar has been installed and using dbaccess, execute the publish procedure directly:
 
 ```sql
-execute procedure j_Json2Mqtt('{"operation":"insert", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695617764, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"ES"}}');
-execute procedure j_Json2Mqtt('{"operation":"update", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695625976, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"UK"}, "before_rowdata":{"code":"53", "sname":"ES"}}');
-execute procedure j_Json2Mqtt('{"operation":"delete", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695638244, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"UK"}}');
+execute procedure j_json2mqtt('{"operation":"insert", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695617764, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"ES"}}');
+execute procedure j_json2mqtt('{"operation":"update", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695625976, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"UK"}, "before_rowdata":{"code":"53", "sname":"ES"}}');
+execute procedure j_json2mqtt('{"operation":"delete", "table":"state", "owner":"informix", "database":"stores_demo", "txnid":12124695638244, "commit_time":1621529490, "rowdata":{"code":"53", "sname":"UK"}}');
 ```
 
 ## Define loopback replication
@@ -203,6 +204,8 @@ Create the test database and table
 
 CREATE DATABASE IF NOT EXISTS testmqtt WITH LOG;
 
+EXECUTE PROCEDURE sqlj.install_jar ('file:$INFORMIXDIR/extend/krakatoa/PublishMQTT.jar', 'Publish2Mqtt', 1);
+
 CREATE TABLE IF NOT EXISTS state(
   code INTEGER PRIMARY KEY,
   sname VARCHAR(40)
@@ -237,10 +240,10 @@ PublishMqtt.jar library is configured to automaticaly register the j_Json2Mqtt p
 by executing this SQL statements in your database:
 
 ```sql
-DROP PROCEDURE IF EXISTS json2mqtt;
+DROP PROCEDURE IF EXISTS j_json2mqtt;
 CREATE PROCEDURE j_json2mqtt(lvarchar)
-  external name 'com.deister.judr.Publish2Mqtt.Json2Mqtt(java.lang.String)'
+  external name 'Publish2Mqtt.json2mqtt(java.lang.String)'
   language java;
 
-grant execute on procedure json2mqtt(lvarchar) to public;
+grant execute on procedure j_json2mqtt(lvarchar) to public;
 ```
