@@ -1,6 +1,6 @@
 PROJECT_NAME=PublishMQTT
 
-SRC_DIR=src/main/java
+SRC_DIR=src/main
 BUILD_DIR=build
 CLASSES_DIR=$(BUILD_DIR)/classes
 DIST_DIR=$(BUILD_DIR)/dist
@@ -16,16 +16,16 @@ build: $(JAR_FILE)
 
 $(JAR_FILE): $(JAVA_SOURCES)
 	@echo "Compiling Java sources..."
-	mkdir -p $(CLASSES_DIR)
-	mkdir -p $(DIST_DIR)
-
 	javac \
 		-cp "$(LIB_DIR)/*" \
 		-d $(CLASSES_DIR) \
 		$(JAVA_SOURCES)
 
 	@echo "Creating JAR..."
-	jar cf $(JAR_FILE) -C $(CLASSES_DIR) .
+	mkdir -p $(DIST_DIR)
+	jar --create --file $(JAR_FILE) \
+	    --manifest MANIFEST.MF \
+	    -C $(CLASSES_DIR) .
 
 install: build
 	@if [ -z "$(INFORMIXDIR)" ]; then \

@@ -298,7 +298,7 @@ public class Publish2Mqtt {
         if (debug || force) {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
 
-            System.out.println(MqttPublisher.class.getSimpleName() + "." + caller.getMethodName() + ": " + message);
+            System.out.println(Publish2Mqtt.class.getSimpleName() + "." + caller.getMethodName() + ": " + message);
         }
     }
 }
