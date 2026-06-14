@@ -18,90 +18,9 @@ Example result:
 
 ---
 
-# Requirements
+## Requirements
 
-## Informix Java (Krakatoa) Environment
-
-Beginning with Informix 14.10, the embedded Java runtime is no longer distributed with the database server. Informix now relies on a standard Java Development Kit (JDK) installed on the operating system.
-
-Ensure that Java 11 or Java 17 is installed and accessible to the Informix server.
-
-Verify that `$INFORMIXDIR/extend/krakatoa/jre` points to a valid JDK installation:
-
-```bash
-ls -l $INFORMIXDIR/extend/krakatoa/jre
-
-$INFORMIXDIR/extend/krakatoa/jre/bin/java -version
-```
-
-Example output:
-
-```text
-openjdk version "17.0.x"
-```
-
-## Configure the Java Virtual Processor
-
-Update the following parameters in `$INFORMIXDIR/etc/$ONCONFIG`:
-
-```text
-VPCLASS         jvp,num=1
-
-JVPJAVAHOME     $INFORMIXDIR/extend/krakatoa/jre
-JVPJAVAVM       jvm
-JVPJAVALIB      /lib/server
-
-JVPPROPFILE     $INFORMIXDIR/extend/krakatoa/.jvpprops
-JVPCLASSPATH    $INFORMIXDIR/extend/krakatoa/krakatoa.jar
-```
-
-### Notes
-
-Although the `ONCONFIG` documentation describes `JVPJAVAVM` as:
-
-> Path relative to `JVPJAVAHOME` that points to the JVM shared library.
-
-In current Informix releases, the value:
-
-```text
-JVPJAVAVM jvm
-```
-
-is the recommended and commonly used configuration when `JVPJAVAHOME` and `JVPJAVALIB` are correctly defined.
-
-## Configure the JVP Properties File
-
-Ensure that the file specified by `JVPPROPFILE` exists.
-
-If it is not present, create it from the template supplied with Informix:
-
-```bash
-cp $INFORMIXDIR/extend/krakatoa/.jvpprops.template \
-   $INFORMIXDIR/extend/krakatoa/.jvpprops
-```
-
-Review and customize the file as required for your environment.
-
-## Restart and Verify the Java Virtual Processor
-
-After updating the configuration, restart the Informix instance:
-
-```bash
-onmode -ky
-oninit
-```
-
-Verify that a Java Virtual Processor (JVP) has been started:
-
-```bash
-onstat -g sch | grep jvp
-```
-
-Example output:
-
-```text
-jvp      1      running
-```
+### Informix Java (Krakatoa) Environment
 
 ---
 
@@ -126,12 +45,34 @@ For environments running Informix 14.x and later, the built-in implementation ma
 If you want to install the UUID procedure in your own database, declare the function in your database:
 
 ```sql
-CREATE FUNCTION UUID() RETURNING CHAR(36) EXTERNAL NAME 'com.informix.judrs.IfxStrings.getUUID()' language java;
-GRANT EXECUTE ON UUID TO PUBLIC;
+CREATE FUNCTION getUUID() RETURNING CHAR(36) EXTERNAL NAME 'com.informix.judrs.IfxStrings.getUUID()' language java;
+GRANT EXECUTE ON getUUID TO PUBLIC;
 
 SELECT UUID();
 ```
 
+or use the automatic deployment of all J/Foundation methods:
+
+```sql
+CREATE FUNCTION generateCreateFunctionStatements() RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.JFoundation.generateCreateFunctionStatements()' LANGUAGE JAVA;
+CREATE FUNCTION generateCreateFunctionStatements(LVARCHAR) RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.JFoundation.generateCreateFunctionStatements()' LANGUAGE JAVA;
+GRANT EXECUTE ON FUNCTION generateCreateFunctionStatements() TO PUBLIC;
+GRANT EXECUTE ON FUNCTION generateCreateFunctionStatements(LVARCHAR) TO PUBLIC;
+
+
+EXECUTE FUNCTION generateCreateFunctionStatements();
+```
+
+Output: 
+
+```txt
+-- com.informix.judrs.Explain
+CREATE FUNCTION getExplain(LVARCHAR) RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.Explain.getExplain(java.lang.String)' LANGUAGE JAVA;
+-- com.informix.judrs.IfxStrings
+CREATE FUNCTION encodeBase64(BLOB) RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.IfxStrings.encodeBase64(java.sql.Blob)' LANGUAGE JAVA;
+CREATE FUNCTION getUUID() RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.IfxStrings.getUUID()' LANGUAGE JAVA;
+CREATE FUNCTION replaceAll(LVARCHAR, LVARCHAR, LVARCHAR) RETURNS LVARCHAR EXTERNAL NAME 'com.informix.judrs.IfxStrings.replaceAll( java.lang.String,java.lang.String,java.lang.String)' LANGUAGE JAVA;
+```
 ---
 
 # Java-Based UUID Implementation
@@ -169,6 +110,7 @@ SELECT generate_uuid() FROM sysmaster:sysdual;
 ```
 
 Example result:
+
 ```txt
 (expression)  7bdcfcfb-1a9f-4e13-98db-49d2c5932143
 ```

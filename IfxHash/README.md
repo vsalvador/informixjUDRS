@@ -24,13 +24,14 @@ DATABASE <database_name>;
 EXECUTE PROCEDURE sqlj.install_jar(
     'file:/home/informix/extend/krakatoa/ifxhash.jar',
     'ifxhash_jar',
-    0
+    1
 );
 ```
 
-## Register the SQL Functions
+## iManual registration the SQL Functions
 
-Create the SQL wrapper functions that expose the Java methods to Informix.
+install_jar can deploy automatically the functions included in the jar. If not deployed, you can
+create the SQL wrapper functions that expose the Java methods to Informix.
 
 ```sql
 DATABASE <database_name>;
@@ -121,19 +122,10 @@ SELECT digest('SHA3-256', 'Hello World') FROM sysmaster:sysdual;
 
 ## Uninstall
 
-First you should drop the registered functions using the registered jar:
+Undeploy all functions dependend of jar and remove the JAR from the database:
 
 ```sql
-DROP FUNCTION IF EXISTS digest;
-DROP FUNCTION IF EXISTS md5;
-DROP FUNCTION IF EXISTS sha256_hex;
-DROP FUNCTION IF EXISTS sha512_hex;
-```
-
-Then remove the JAR from the database:
-
-```sql
-EXECUTE PROCEDURE sqlj.remove_jar('ifxhash_jar');
+EXECUTE PROCEDURE sqlj.remove_jar('ifxhash_jar', 1);
 ```
 
 To check if other functions have been registered using this jar file, you can execute this SQL statement:

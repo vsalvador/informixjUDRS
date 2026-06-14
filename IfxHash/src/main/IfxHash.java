@@ -1,4 +1,4 @@
-package com.deister.udr;
+package com.deister.judr;
 
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
