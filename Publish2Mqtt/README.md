@@ -69,7 +69,7 @@ clientId=
 #username=myuser
 #password=mypassword
 topic=informix/%database/%table
-qosLevel=0 # QoS defined here (0, 1, or 2)
+qosLevel=0
 debug=false
 ```
 
@@ -115,6 +115,7 @@ Edit mqtt.properties file and set up the proper parameters to connect to MQTT br
 
 ```sql
 DATABASE xxx;
+-- EXECUTE PROCEDURE sqlj.remove_jar('Publish2Mqtt', 1);
 EXECUTE PROCEDURE sqlj.install_jar('file:$INFORMIXDIR/extend/krakatoa/PublishMQTT.jar', 'Publish2Mqtt', 1);
 ```
 
@@ -203,6 +204,8 @@ Create the test database and table
 ```sql
 
 CREATE DATABASE IF NOT EXISTS testmqtt WITH LOG;
+
+-- EXECUTE PROCEDURE sqlj.remove_jar('Publish2Mqtt', 1);
 
 EXECUTE PROCEDURE sqlj.install_jar ('file:$INFORMIXDIR/extend/krakatoa/PublishMQTT.jar', 'Publish2Mqtt', 1);
 

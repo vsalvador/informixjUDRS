@@ -49,11 +49,11 @@ public class Publish2Mqtt {
     /** Topic template loaded from configuration */
     private static String topic;
 
+    /** MQTT Quality of Service level*/
+    private static int qosLevel;
+
     /** Enables verbose logging when true */
     private static boolean debug;
-
-    /** Default MQTT Quality of Service level */
-    private static final int DEFAULT_QOS_LEVEL = 0;
 
     /**
      * Publishes a JSON payload to the configured MQTT broker.
@@ -150,17 +150,13 @@ public class Publish2Mqtt {
             MqttMessage mqttMessage = new MqttMessage(jsonString.getBytes());
 
             // Apply configured QoS level
-            mqttMessage.setQos(DEFAULT_QOS_LEVEL);
+            mqttMessage.setQos(qosLevel);
+
+            debugLog( "Publishing topic: " + fullTopic + " with QoS: " + qosLevel);
+            debugLog( "Payload: " + jsonString);
 
             // Publish message to topic
             sampleClient.publish(fullTopic, mqttMessage);
-
-            debugLog(
-                "Message published to topic: "
-                    + fullTopic
-                    + " with QoS: "
-                    + DEFAULT_QOS_LEVEL
-            );
 
             // Disconnect from broker
             sampleClient.disconnect();
@@ -203,6 +199,11 @@ public class Publish2Mqtt {
             username = properties.getProperty("username");
             password = properties.getProperty("password");
             topic = properties.getProperty("topic");
+
+            // Optional Quality of Service (default=0)
+            qosLevel = Integer.parseInt(
+                properties.getProperty("qosLevel", "0")
+            );
 
             // Optional debug flag (default=false)
             debug = Boolean.parseBoolean(
@@ -247,9 +248,6 @@ public class Publish2Mqtt {
         if (topic.contains("%")) {
 
             try {
-
-                debugLog("Parsing as JSON: " + jsonMessage);
-
                 // Parse JSON payload
                 JSONObject jsonObject = new JSONObject(jsonMessage);
 
@@ -265,7 +263,8 @@ public class Publish2Mqtt {
                 }
 
             } catch (Exception e) {
-                errorLog( "Exception: " + e.getMessage());
+                errorLog("Exception: " + e.getMessage());
+                errorLog("Parsing bad JSON: " + jsonMessage);
             }
         }
 
