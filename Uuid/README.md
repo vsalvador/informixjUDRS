@@ -85,28 +85,23 @@ The Java implementation may be useful when:
 - Additional UUID-related functionality is planned.
 - Existing Java extension deployment practices are already in use within the environment.
 
-Refer to the installation instructions to deploy the extension and register the SQL function.
+## Compile sources
+To compile source files and create jar deployment archive use the **build.sh** command. This command will compile sources, create jar file and deploy it to $INFORMIXDIR/extend/krakatoa folder.
 
-Compile it:
-```bash
-javac --release 11 UUIDGenerator.java
-```
+## Deploy functions
 
-Create jar file:
-```bash
-jar cf UUIDGenerator.jar UUIDGenerator.class
-```
+By installing the jar file in your database, the deployment function will create the generateUUID function automatically.
 
 SQL file:
 ```sql
 -- install
-execute procedure sqlj.install_jar ("file://home/informix/profiles/uuid/UUIDGenerator.jar" , "UUIDGenerator_jar");
+execute procedure sqlj.install_jar ("file://home/informix/extend/krakatoa/UUIDGenerator.jar" , "UUIDGenerator_jar", 1);
 
--- register function
-create function generate_uuid() returning  CHAR(36) external name "UUIDGenerator_jar:UUIDGenerator.generateUUID" language JAVA;
+-- register function - Done autonatically by previous deployment flag
+--create function generateUUID() returning  CHAR(36) external name "UUIDGenerator_jar:UUIDGenerator.generateUUID" language JAVA;
 
 -- use it
-SELECT generate_uuid() FROM sysmaster:sysdual;
+SELECT generateUUID() FROM sysmaster:sysdual;
 ```
 
 Example result:
