@@ -3,6 +3,6 @@ Created-By: Vicente Salvador
 Implementation-Title: ifxhash UDR functions
 Implementation-Version: 1.0.0
 Implementation-Vendor: DEISTER
-Class-Path: lib/commons-codec.jar lib/other-dependency.jar
+Class-Path: lib/json-20210307.jar lib/org.eclipse.paho.client.mqttv3-1.2.5.jar
 Commented-Main-Class: com.deister.udr.IfxHash
 UDR-Notes: classpath lib is folder relative to main jar location
