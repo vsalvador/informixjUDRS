@@ -28,10 +28,10 @@ EXECUTE PROCEDURE sqlj.install_jar(
 );
 ```
 
-## iManual registration the SQL Functions
+## Manual registration the SQL Functions
 
-install_jar can deploy automatically the functions included in the jar. If not deployed, you can
-create the SQL wrapper functions that expose the Java methods to Informix.
+install_jar can deploy automatically the functions included in the jar. If some error occurs and functions are not deployed, you can
+create by your own the SQL wrapper functions that expose the Java methods to Informix.
 
 ```sql
 DATABASE <database_name>;
