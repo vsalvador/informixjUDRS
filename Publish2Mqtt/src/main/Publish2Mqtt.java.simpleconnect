@@ -56,85 +56,6 @@ public class Publish2Mqtt {
     /** Enables verbose logging when true */
     private static boolean debug;
 
-
-    private static MqttClient client = null;
-
-    public static synchronized MqttClient getClient() throws Exception {
-
-        if (client == null) {
-
-             // Load configuration from mqtt.properties
-            loadConfiguration();
-            debugLog("Configuration loaded");
-
-            /*
-             * If no clientId has been configured,
-             * use the local hostname.
-             */
-            try {
-                if (clientId == null || clientId.trim().isEmpty()) {
-                    clientId = InetAddress.getLocalHost().getHostName();
-                }
-            } catch (UnknownHostException e) {
-
-                // Fallback value if hostname cannot be determined
-                debugLog( "Could not retrieve hostname, using a default clientId.", true);
-
-                clientId = "defaultClientId";
-            }
-
-            /*
-             * Create MQTT client instance.
-             *
-             * Parameters:
-             *   brokerUrl -> MQTT broker endpoint
-             *   clientId  -> MQTT client identifier
-             */
-            debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
-            client = new MqttClient(
-                brokerUrl,
-                clientId,
-                new MemoryPersistence()
-                //new MqttDefaultFilePersistence("/tmp")
-            );
-
-            /*
-             * Configure MQTT connection.
-             *
-             * Clean session means that subscriptions and
-             * session state are not preserved between
-             * connections.
-             */
-            debugLog("Configuring connection options");
-
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setAutomaticReconnect(true);
-            options.setCleanSession(false);
-            options.setConnectionTimeout(10);
-            options.setKeepAliveInterval(60);
-
-            /*
-             * Configure authentication if password is defined.
-             */
-            if (password != null) {
-                options.setUserName(username);
-                options.setPassword(password.toCharArray());
-            }
-
-            // Connect to MQTT broker
-            debugLog("Connecting to broker");
-            client.connect(options);
-        }
-
-        if (!client.isConnected()) {
-            debugLog("Re-Connecting to broker");
-            client.reconnect();
-        }
-
-        return client;
-    }
-
-
     /**
      * Publishes a JSON payload to the configured MQTT broker.
      *
@@ -150,10 +71,71 @@ public class Publish2Mqtt {
      */
     public static void json2mqtt(String jsonString) {
 
+        debugLog("**** Start");
+
+        // Load configuration from mqtt.properties
+        loadConfiguration();
+
+        debugLog("Configuration loaded");
+
+        /*
+         * If no clientId has been configured,
+         * use the local hostname.
+         */
+        try {
+            if (clientId == null || clientId.trim().isEmpty()) {
+                clientId = InetAddress.getLocalHost().getHostName();
+            }
+        } catch (UnknownHostException e) {
+
+            // Fallback value if hostname cannot be determined
+            debugLog( "Could not retrieve hostname, using a default clientId.", true);
+
+            clientId = "defaultClientId";
+        }
+
+
         try {
 
-             // Load configuration from mqtt.properties
-            loadConfiguration();
+            /*
+             * Create MQTT client instance.
+             *
+             * Parameters:
+             *   brokerUrl -> MQTT broker endpoint
+             *   clientId  -> MQTT client identifier
+             */
+            debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
+            MqttClient client = new MqttClient(brokerUrl,
+                                               clientId,
+                                               new MemoryPersistence()
+                                               //new MqttDefaultFilePersistence("/tmp/mqtt")
+                                              );
+
+            /*
+             * Configure MQTT connection.
+             *
+             * Clean session means that subscriptions and
+             * session state are not preserved between
+             * connections.
+             */
+            debugLog("Configuring connection options");
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+
+            /*
+             * Configure authentication if password is defined.
+             */
+            if (password != null) {
+                connOpts.setUserName(username);
+                connOpts.setPassword(password.toCharArray());
+            }
+
+            // Connect to MQTT broker
+            debugLog("Connecting to broker: " + brokerUrl);
+
+            client.connect(connOpts);
+
+            debugLog("Connected");
 
             /*
              * Build final MQTT topic.
@@ -180,11 +162,12 @@ public class Publish2Mqtt {
             debugLog( "Payload: " + jsonString);
 
             // Publish message to topic
-            // MqttClient mqtt = MQTTManager.getClient();
-            MqttClient mqtt = getClient();
-            mqtt.publish(fullTopic, mqttMessage);
+            client.publish(fullTopic, mqttMessage);
 
-            debugLog("Published");
+            // Disconnect from broker
+            client.disconnect();
+
+            debugLog("Disconnected");
 
         } catch (MqttException e) {
             errorLog("Reason code: " + e.getReasonCode());
