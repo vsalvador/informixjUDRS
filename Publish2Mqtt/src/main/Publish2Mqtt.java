@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
 
 /**
@@ -93,7 +94,6 @@ public class Publish2Mqtt {
             clientId = "defaultClientId";
         }
 
-        debugLog("Creating MQTT client");
 
         try {
 
@@ -104,7 +104,12 @@ public class Publish2Mqtt {
              *   brokerUrl -> MQTT broker endpoint
              *   clientId  -> MQTT client identifier
              */
-            MqttClient sampleClient = new MqttClient(brokerUrl, clientId);
+            debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
+            MqttClient client = new MqttClient(brokerUrl,
+                                               clientId,
+                                               new MemoryPersistence()
+                                               //new MqttDefaultFilePersistence("/tmp/mqtt")
+                                              );
 
             /*
              * Configure MQTT connection.
@@ -113,6 +118,7 @@ public class Publish2Mqtt {
              * session state are not preserved between
              * connections.
              */
+            debugLog("Configuring connection options");
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
 
@@ -127,7 +133,7 @@ public class Publish2Mqtt {
             // Connect to MQTT broker
             debugLog("Connecting to broker: " + brokerUrl);
 
-            sampleClient.connect(connOpts);
+            client.connect(connOpts);
 
             debugLog("Connected");
 
@@ -156,17 +162,25 @@ public class Publish2Mqtt {
             debugLog( "Payload: " + jsonString);
 
             // Publish message to topic
-            sampleClient.publish(fullTopic, mqttMessage);
+            client.publish(fullTopic, mqttMessage);
 
             // Disconnect from broker
-            sampleClient.disconnect();
+            client.disconnect();
 
             debugLog("Disconnected");
 
+        } catch (MqttException e) {
+            errorLog("Reason code: " + e.getReasonCode());
+            errorLog("Message: " + e.getMessage());
+            for (StackTraceElement ste : e.getStackTrace()) {
+                errorLog(ste.toString());
+            }
         } catch (Exception e) {
-
             // Catch any MQTT-related exception
-            errorLog( "MQTT Exception: " + e.getMessage());
+            errorLog("Exception: " + e.getMessage());
+            for (StackTraceElement ste : e.getStackTrace()) {
+                errorLog(ste.toString());
+            }
         }
     }
 
@@ -288,7 +302,7 @@ public class Publish2Mqtt {
         if (debug || force) {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
 
-            System.out.println(Publish2Mqtt.class.getSimpleName() + "." + caller.getMethodName() + ": " + message);
+            System.out.print(Publish2Mqtt.class.getSimpleName() + "." + caller.getMethodName() + ": " + message);
         }
     }
 }
