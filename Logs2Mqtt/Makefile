@@ -26,6 +26,7 @@ $(JAR_FILE): $(JAVA_SOURCES) MANIFEST.MF
 	@echo "Creating JAR..."
 	mkdir -p $(DIST_DIR)
 	jar --create --file $(JAR_FILE) \
+            --manifest MANIFEST.MF \
 	    -C $(CLASSES_DIR) .
 
 install: build
@@ -41,11 +42,12 @@ install: build
 	@echo "Installation complete."
 
 test:
-	javac -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
-	      -d $(BUILD_DIR)/classes \
-	      $$(find $(TEST_DIR) -name "*.java")
-	java -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
-	     com.example.AppTest
+	@java -jar build/dist/Logs2Mqtt.jar
+	#javac -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
+	#      -d $(BUILD_DIR)/classes \
+	#      $$(find $(TEST_DIR) -name "*.java")
+	#java -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
+	#     com.example.AppTest
 
 clean:
 	rm -rf $(BUILD_DIR)

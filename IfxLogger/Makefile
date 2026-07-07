@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-PROJECT_NAME=PublishMQTT
+PROJECT_NAME=IfxLogger
 
 SRC_DIR=src/main
 BUILD_DIR=build
