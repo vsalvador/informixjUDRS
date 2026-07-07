@@ -94,7 +94,7 @@ public class Publish2Mqtt {
             clientId = "defaultClientId";
         }
 
-        MqttClient client = null;
+        MqttAsyncClient client = null;
 
         try {
             String effectiveClientId = clientId + "-" + Thread.currentThread().getId();
@@ -107,7 +107,7 @@ public class Publish2Mqtt {
              *   clientId  -> MQTT client identifier
              */
             debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
-            client = new MqttClient(brokerUrl,
+            client = new MqttAsyncClient(brokerUrl,
                                     clientId,
                                     new MemoryPersistence()
                                     //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
@@ -120,16 +120,11 @@ public class Publish2Mqtt {
              * session state are not preserved between
              * connections.
              */
-            debugLog("Configuring connection options");
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
             connOpts.setConnectionTimeout(5);
             connOpts.setKeepAliveInterval(30);
             connOpts.setAutomaticReconnect(false);
-
-            /*
-             * Configure authentication if password is defined.
-             */
             if (password != null) {
                 connOpts.setUserName(username);
                 connOpts.setPassword(password.toCharArray());
@@ -138,7 +133,8 @@ public class Publish2Mqtt {
             // Connect to MQTT broker
             debugLog("Connecting to broker: " + brokerUrl);
 
-            client.connect(connOpts);
+            IMqttToken connToken = client.connect(connOpts);
+	    connToken.waitForCompletion(5000);
 
             /*
              * Build final MQTT topic.
@@ -164,9 +160,16 @@ public class Publish2Mqtt {
 
             debugLog( "Publishing topic: " + fullTopic + " with QoS: " + qosLevel);
             debugLog( "Payload: " + jsonString);
-            MqttTopic mqttTopic = client.getTopic(fullTopic);
-            MqttDeliveryToken token = mqttTopic.publish(mqttMessage);
-            token.waitForCompletion(3000);
+
+            // Using MqttClient
+            //MqttTopic mqttTopic = client.getTopic(fullTopic);
+            //MqttDeliveryToken token = mqttTopic.publish(mqttMessage);
+            //token.waitForCompletion(3000);
+
+            // Using MqttAsyncClient
+            IMqttDeliveryToken pubToken = client.publish(fullTopic, message);
+            pubToken.waitForCompletion(3000);
+
         } catch (MqttException e) {
             errorLog("Reason code: " + e.getReasonCode());
             errorLog("Message: " + e.getMessage());
