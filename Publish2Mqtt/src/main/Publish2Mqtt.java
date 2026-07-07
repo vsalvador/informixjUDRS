@@ -51,10 +51,10 @@ public class Publish2Mqtt {
     private static String topic;
 
     /** MQTT Quality of Service level*/
-    private static int qosLevel;
+    private static int qosLevel = -1;
 
     /** Enables verbose logging when true */
-    private static boolean debug;
+    private static boolean debug = false;
 
 
     private static MqttClient client = null;
@@ -151,9 +151,12 @@ public class Publish2Mqtt {
     public static void json2mqtt(String jsonString) {
 
         try {
+            if (qosLevel == -1) {
 
-             // Load configuration from mqtt.properties
-            loadConfiguration();
+                // Load configuration from mqtt.properties
+                loadConfiguration();
+                debugLog("Configuration loaded");
+            }
 
             /*
              * Build final MQTT topic.
