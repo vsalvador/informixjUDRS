@@ -95,7 +95,7 @@ public class Publish2Mqtt {
                 brokerUrl,
                 clientId,
                 new MemoryPersistence()
-                //new MqttDefaultFilePersistence("/tmp")
+                //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
             );
 
             /*

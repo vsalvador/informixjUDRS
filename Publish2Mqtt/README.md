@@ -46,7 +46,7 @@ org.json.JSONObject
 The application loads its configuration from:
 
 ```text
-$INFORMIXDIR/etc/mqtt.conf
+$INFORMIXDIR/etc/mqtt.properties
 ```
 
 ### Configuration Parameters

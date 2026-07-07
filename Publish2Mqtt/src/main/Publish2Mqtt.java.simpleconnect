@@ -108,7 +108,7 @@ public class Publish2Mqtt {
             MqttClient client = new MqttClient(brokerUrl,
                                                clientId,
                                                new MemoryPersistence()
-                                               //new MqttDefaultFilePersistence("/tmp/mqtt")
+                                               //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
                                               );
 
             /*
