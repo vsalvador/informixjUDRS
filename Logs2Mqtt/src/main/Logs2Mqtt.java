@@ -33,19 +33,21 @@ public class Logs2Mqtt {
     public static void main(String[] args) throws Exception {
         System.out.println("Iniciando servicio de lectura y limpieza de logs...");
 
+        loadConfiguration();
+
         while (true) {
             List<File> archivosLog = obtenerArchivosLogOrdenados();
 
             if (archivosLog.isEmpty()) {
-                System.out.println("No se encontraron archivos de log. Esperando...");
-                esperar(5000);
+                System.out.println("No se encontraron archivos de log en " + DIRECTORIO_LOGS + ". Esperando...");
+                esperar(10000);
                 continue;
             }
 
-            String nombreArchivoHoy = PREFIJO_ARCHIVO + LocalDate.now().format(FORMATO_FECHA) + SUFIJO_ARCHIVO;
+            String nombreArchivoHoy = PREFIJO_ARCHIVO + "_" + LocalDate.now().format(FORMATO_FECHA) + SUFIJO_ARCHIVO;
 
             for (File archivo : archivosLog) {
-                System.out.println("Npmbre arcjivo: " + archivo.getName() + " Nombre esperado: " + nombreArchivoHoy);
+                System.out.println("Npmbre archivo: " + archivo.getName() + " Nombre esperado: " + nombreArchivoHoy);
                 boolean esArchivoDeHoy = archivo.getName().equals(nombreArchivoHoy);
                 long offsetGuardado = cargarOffset(archivo) - 1;
 
@@ -152,16 +154,20 @@ public class Logs2Mqtt {
     }
 
     private static void loadConfiguration() {
+        String propertyPath = System.getenv("INFORMIXDIR") + "/etc/ifxlogger.properties";
+
+        System.out.println("Loading properties from " + propertyPath);
 
         Properties p = new Properties();
 
-        try (FileInputStream in = new FileInputStream(System.getenv("INFORMIXDIR") + "/etc/ifxlogger.properties")) {
+        try (FileInputStream in = new FileInputStream(propertyPath)) {
             p.load(in);
 
             DIRECTORIO_LOGS = p.getProperty("log.directory", "/tmp");
             PREFIJO_ARCHIVO = p.getProperty("log.basename", "IfxLogger");
         } catch (Exception e) {
             // Keep defaults
+            System.err.println("Property file " + propertyPath + " not found or incorrect");
         }
 
         new File(DIRECTORIO_LOGS).mkdirs();
