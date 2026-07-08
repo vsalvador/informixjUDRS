@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -23,7 +24,13 @@ public class Logs2Mqtt {
     private static String EXTENSION_CONTROL = ".offset";
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    public static void main(String[] args) {
+    private static MqttClient client = null;
+    private static String     topic;
+    private static int        qosLevel;
+
+    
+
+    public static void main(String[] args) throws Exception {
         System.out.println("Iniciando servicio de lectura y limpieza de logs...");
 
         while (true) {
@@ -61,10 +68,13 @@ public class Logs2Mqtt {
         }
     }
 
-    private static boolean procesarFichero(File archivo, long offsetInicial, boolean esArchivoDeHoy) {
+    private static boolean procesarFichero(File archivo, long offsetInicial, boolean esArchivoDeHoy) throws Exception {
+        MqttClient mqtt = null;
+
         File archivoControl = obtenerArchivoControl(archivo);
 
         try (RandomAccessFile raf = new RandomAccessFile(archivo, "r")) {
+
             if (offsetInicial < raf.length()) {
                 raf.seek(offsetInicial);
             }
@@ -90,6 +100,15 @@ public class Logs2Mqtt {
                         // ==========================================
 
                         System.out.println("[" + archivo.getName() + "] " + lineaLimpia);
+
+                        mqtt = getMqttClient();
+
+                        String      fullTopic   = constructFullTopic(topic, lineaLimpia);
+                        MqttMessage mqttMessage = new MqttMessage(lineaLimpia.getBytes());
+
+                        mqttMessage.setQos(qosLevel);
+
+                        client.publish(fullTopic, mqttMessage);
 
                         // ==========================================
                         // FIN LOGICA DE PROCESAMIENTO DE La LINEA DEL FICHERO
@@ -119,6 +138,16 @@ public class Logs2Mqtt {
             System.err.println("Error procesando " + archivo.getName() + ": " + e.getMessage());
             esperar(2000);
             return false;
+        } finally {
+            try {
+                mqtt.disconnectForcibly(1000, 1000);
+            } catch (Exception ignored) {}
+
+            try {
+                mqtt.close(true);
+            } catch (Exception ignored) {}
+
+            mqtt = null;
         }
     }
 
@@ -205,4 +234,127 @@ public class Logs2Mqtt {
             Thread.currentThread().interrupt();
         }
     }
+
+
+
+    public static synchronized MqttClient getMqttClient() throws Exception {
+
+        if (client == null || !client.isConnected()) {
+             String brokerUrl = null;
+             String clientId = "Krakatoa";
+             String username = null;
+             String password = null;
+
+             System.out.println("Connecting to MQTT broker");
+
+             // Load configuration from mqtt.properties
+             Properties properties = new Properties();
+
+            String configFilePath = System.getenv("INFORMIXDIR") + "/etc/mqtt.properties";
+
+            try (InputStream input = new FileInputStream(configFilePath)) {
+
+                properties.load(input);
+
+                brokerUrl = properties.getProperty("brokerUrl");
+                clientId = properties.getProperty("clientId");
+                username = properties.getProperty("username");
+                password = properties.getProperty("password");
+                topic = properties.getProperty("topic");
+
+                // Optional Quality of Service (default=0)
+                qosLevel = Integer.parseInt(
+                    properties.getProperty("qosLevel", "0")
+                );
+            } catch (IOException ex) {
+                System.err.println( "Error loading configuration file [" + configFilePath + "]: " + ex.getMessage());
+                System.exit(1);
+            }
+
+
+            /*
+             * If no clientId has been configured,
+             * use the local hostname.
+             */
+            if (clientId == null || clientId.trim().isEmpty()) {
+                 clientId = "Krakatoa";
+            }
+
+            /*
+             * Create MQTT client instance.
+             *
+             * Parameters:
+             *   brokerUrl -> MQTT broker endpoint
+             *   clientId  -> MQTT client identifier
+             */
+            client = new MqttClient(
+                brokerUrl,
+                clientId,
+                new MemoryPersistence()
+                //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
+            );
+
+            /*
+             * Configure MQTT connection.
+             *
+             * Clean session means that subscriptions and
+             * session state are not preserved between
+             * connections.
+             */
+
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            options.setAutomaticReconnect(false);
+            options.setConnectionTimeout(5);
+            options.setKeepAliveInterval(5);
+
+            /*
+             * Configure authentication if password is defined.
+             */
+            if (password != null) {
+                options.setUserName(username);
+                options.setPassword(password.toCharArray());
+            }
+
+            // Connect to MQTT broker
+            client.connect(options);
+        }
+
+        return client;
+    }
+
+    private static String constructFullTopic(
+        String topic,
+        String jsonMessage
+    ) {
+
+        String fullTopic = topic;
+
+        // Only process replacements if placeholders exist
+        if (topic.contains("%")) {
+
+            try {
+                // Parse JSON payload
+                JSONObject jsonObject = new JSONObject(jsonMessage);
+
+                /*
+                 * Replace every placeholder found
+                 * in the topic template.
+                 */
+                for (String key : jsonObject.keySet()) {
+
+                    String value = String.valueOf(jsonObject.get(key));
+
+                    fullTopic = fullTopic.replace( "%" + key, value);
+                }
+
+            } catch (Exception e) {
+                System.err.println("Exception: " + e.getMessage());
+                System.err.println("Parsing bad JSON: " + jsonMessage);
+            }
+        }
+
+        return fullTopic;
+    }
+
 }

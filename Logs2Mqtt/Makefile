@@ -42,7 +42,7 @@ install: build
 	@echo "Installation complete."
 
 test:
-	@java -jar build/dist/Logs2Mqtt.jar
+	@java -cp "lib/org.eclipse.paho.client.mqttv3-1.2.5.jar" -jar build/dist/Logs2Mqtt.jar
 	#javac -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
 	#      -d $(BUILD_DIR)/classes \
 	#      $$(find $(TEST_DIR) -name "*.java")
