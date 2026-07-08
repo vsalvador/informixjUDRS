@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Class-Path: lib/json-20210307.jar lib/org.eclipse.paho.client.mqttv3-1.2.5.jar
+Main-Class: Logs2Mqtt
