@@ -74,16 +74,19 @@ public class Logs2Mqtt {
         MqttClient mqtt = null;
 
         File archivoControl = obtenerArchivoControl(archivo);
+        System.out.println("Archivo de control: " + archivoControl);
 
         try (RandomAccessFile raf = new RandomAccessFile(archivo, "r")) {
-
+            System.out.println("Length: " + raf.length() + " Offset: " + offsetInicial);
             if (offsetInicial < raf.length()) {
                 raf.seek(offsetInicial);
             }
 
+            System.out.println("Start to read lines");
+
             while (true) {
                 // Verificar si el día cambió mientras procesábamos el archivo de hoy
-                if (esArchivoDeHoy && !archivo.getName().equals(PREFIJO_ARCHIVO + LocalDate.now().format(FORMATO_FECHA) + SUFIJO_ARCHIVO)) {
+                if (esArchivoDeHoy && !archivo.getName().equals(PREFIJO_ARCHIVO + "_" + LocalDate.now().format(FORMATO_FECHA) + SUFIJO_ARCHIVO)) {
                     System.out.println("El día ha cambiado. Pasando al archivo del nuevo día.");
                     return true; 
                 }
@@ -119,6 +122,7 @@ public class Logs2Mqtt {
 
                     guardarOffset(archivoControl, raf.getFilePointer());
                 } else {
+                    System.out.println("Readline returns null");
                     if (!esArchivoDeHoy) {
                         // Doble chequeo estricto de finalización para archivos antiguos
                         if (raf.getFilePointer() >= archivo.length()) {
@@ -136,11 +140,12 @@ public class Logs2Mqtt {
                     esperar(1000);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Error procesando " + archivo.getName() + ": " + e.getMessage());
             esperar(2000);
             return false;
         } finally {
+            System.out.println("Desconectando Mqtt" );
             try {
                 mqtt.disconnectForcibly(1000, 1000);
             } catch (Exception ignored) {}
