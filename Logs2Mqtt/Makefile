@@ -10,7 +10,7 @@ LIB_DIR=lib
 
 JAR_FILE=$(DIST_DIR)/$(PROJECT_NAME).jar
 
-INST_DIR=$(INFORMIXDIR)/extend/krakatoa
+INST_DIR=$(INFORMIXDIR)
 
 JAVA_SOURCES := $(shell find $(SRC_DIR) -name "*.java")
 
@@ -37,17 +37,13 @@ install: build
 
 	@echo "Installing to $(INST_DIR)..."
 	cp $(JAR_FILE) $(INST_DIR)/
-	cp lib/json-20210307.jar $(INST_DIR)/
-	cp lib/org.eclipse.paho.client.mqttv3-1.2.5.jar $(INST_DIR)/
+        mkdir -p $(INST_DIR)/lib
+	cp lib/json-20210307.jar $(INST_DIR)/lib
+	cp lib/org.eclipse.paho.client.mqttv3-1.2.5.jar $(INST_DIR)/lib
 	@echo "Installation complete."
 
 test:
 	@java -cp "lib/org.eclipse.paho.client.mqttv3-1.2.5.jar" -jar build/dist/Logs2Mqtt.jar
-	#javac -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
-	#      -d $(BUILD_DIR)/classes \
-	#      $$(find $(TEST_DIR) -name "*.java")
-	#java -cp "$(BUILD_DIR)/classes:$(CLASSPATH)" \
-	#     com.example.AppTest
 
 clean:
 	rm -rf $(BUILD_DIR)
