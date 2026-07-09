@@ -108,10 +108,10 @@ public class Publish2Mqtt {
             debugLog("Configuring connection options");
 
             MqttConnectOptions options = new MqttConnectOptions();
-            options.setAutomaticReconnect(true);
-            options.setCleanSession(false);
-            options.setConnectionTimeout(10);
-            options.setKeepAliveInterval(60);
+            options.setCleanSession(true);
+            options.setAutomaticReconnect(false);
+            options.setConnectionTimeout(5);
+            options.setKeepAliveInterval(30);
 
             /*
              * Configure authentication if password is defined.
@@ -182,13 +182,22 @@ public class Publish2Mqtt {
             debugLog( "Publishing topic: " + fullTopic + " with QoS: " + qosLevel);
             debugLog( "Payload: " + jsonString);
 
-            // Publish message to topic
-            // MqttClient mqtt = MQTTManager.getClient();
             MqttClient mqtt = getClient();
-            mqtt.publish(fullTopic, mqttMessage);
 
-            debugLog("Published");
+            MqttTopic mqttTopic = mqtt.getTopic(fullTopic);
+            MqttDeliveryToken token = mqttTopic.publish(mqttMessage);
 
+            try {
+                token.waitForCompletion(3000);
+                debugLog("Published");
+            } catch (MqttException e) {
+                errorLog("MQTT publish timeout/error. Reason code: " + e.getReasonCode());
+                try {
+                    mqtt.disconnectForcibly(1000, 1000);
+                    mqtt.close(true);
+                } catch (Exception ignored) {}
+                client = null;
+            }
         } catch (MqttException e) {
             errorLog("Reason code: " + e.getReasonCode());
             errorLog("Message: " + e.getMessage());

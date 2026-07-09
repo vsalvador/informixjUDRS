@@ -94,8 +94,10 @@ public class Publish2Mqtt {
             clientId = "defaultClientId";
         }
 
+        MqttClient client = null;
 
         try {
+            String effectiveClientId = clientId + "-" + Thread.currentThread().getId();
 
             /*
              * Create MQTT client instance.
@@ -105,11 +107,11 @@ public class Publish2Mqtt {
              *   clientId  -> MQTT client identifier
              */
             debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
-            MqttClient client = new MqttClient(brokerUrl,
-                                               clientId,
-                                               new MemoryPersistence()
-                                               //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
-                                              );
+            client = new MqttClient(brokerUrl,
+                                    clientId,
+                                    new MemoryPersistence()
+                                    //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
+                                   );
 
             /*
              * Configure MQTT connection.
@@ -121,6 +123,9 @@ public class Publish2Mqtt {
             debugLog("Configuring connection options");
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
+            connOpts.setConnectionTimeout(5);
+            connOpts.setKeepAliveInterval(30);
+            connOpts.setAutomaticReconnect(false);
 
             /*
              * Configure authentication if password is defined.
@@ -134,8 +139,6 @@ public class Publish2Mqtt {
             debugLog("Connecting to broker: " + brokerUrl);
 
             client.connect(connOpts);
-
-            debugLog("Connected");
 
             /*
              * Build final MQTT topic.
@@ -157,18 +160,13 @@ public class Publish2Mqtt {
 
             // Apply configured QoS level
             mqttMessage.setQos(qosLevel);
+            //mqttMessage.setRetained(false);
 
             debugLog( "Publishing topic: " + fullTopic + " with QoS: " + qosLevel);
             debugLog( "Payload: " + jsonString);
-
-            // Publish message to topic
-            client.publish(fullTopic, mqttMessage);
-
-            // Disconnect from broker
-            client.disconnect();
-
-            debugLog("Disconnected");
-
+            MqttTopic mqttTopic = client.getTopic(fullTopic);
+            MqttDeliveryToken token = mqttTopic.publish(mqttMessage);
+            token.waitForCompletion(3000);
         } catch (MqttException e) {
             errorLog("Reason code: " + e.getReasonCode());
             errorLog("Message: " + e.getMessage());
@@ -181,6 +179,19 @@ public class Publish2Mqtt {
             for (StackTraceElement ste : e.getStackTrace()) {
                 errorLog(ste.toString());
             }
+        } finally {
+            try {
+                if (client != null && client.isConnected()) {
+                    client.disconnectForcibly(1000, 1000);
+                }
+            } catch (Exception ignored) {}
+
+            try {
+                if (client != null) {
+                    client.close(true);
+                    debugLog("Disconnected");
+                }
+            } catch (Exception ignored) {}
         }
     }
 
