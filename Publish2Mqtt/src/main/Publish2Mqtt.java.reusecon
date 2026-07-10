@@ -73,15 +73,18 @@ public class Publish2Mqtt {
              */
             try {
                 if (clientId == null || clientId.trim().isEmpty()) {
-                    clientId = InetAddress.getLocalHost().getHostName();
+                    //clientId = InetAddress.getLocalHost().getHostName();
+
+                    clientId = System.getenv("INFORMIXSERVER");
                 }
             } catch (UnknownHostException e) {
 
                 // Fallback value if hostname cannot be determined
-                debugLog( "Could not retrieve hostname, using a default clientId.", true);
+                errorLog( "Could not retrieve hostname, using a default clientId.");
 
-                clientId = "defaultClientId";
+                clientId = "Krakatoa";
             }
+            String effectiveClientId = clientId + "-" + Thread.currentThread().getId();
 
             /*
              * Create MQTT client instance.
@@ -90,10 +93,10 @@ public class Publish2Mqtt {
              *   brokerUrl -> MQTT broker endpoint
              *   clientId  -> MQTT client identifier
              */
-            debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + clientId + " User dir: " + System.getProperty("user.dir"));
+            debugLog("Creating MQTT URL: " +  brokerUrl + " client:" + effectiveClientId + " User dir: " + System.getProperty("user.dir"));
             client = new MqttClient(
                 brokerUrl,
-                clientId,
+                effectiveClientId,
                 new MemoryPersistence()
                 //new MqttDefaultFilePersistence(System.getenv("INFORMIXDIR"))
             );

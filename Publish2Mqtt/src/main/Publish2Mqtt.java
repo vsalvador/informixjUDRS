@@ -69,7 +69,7 @@ public class Publish2Mqtt {
      *
      * @param jsonString JSON message to publish.
      */
-    public static void json2mqtt(String jsonString) {
+    public static synchronized void json2mqtt(String jsonString) {
 
         debugLog("**** Start");
 
@@ -84,20 +84,22 @@ public class Publish2Mqtt {
          */
         try {
             if (clientId == null || clientId.trim().isEmpty()) {
-                clientId = InetAddress.getLocalHost().getHostName();
+                //clientId = InetAddress.getLocalHost().getHostName();
+
+                clientId = System.getenv("INFORMIXSERVER");
             }
         } catch (UnknownHostException e) {
 
             // Fallback value if hostname cannot be determined
-            debugLog( "Could not retrieve hostname, using a default clientId.", true);
+            errorLog( "Could not retrieve hostname, using a default clientId.");
 
-            clientId = "defaultClientId";
+            clientId = "Krakatoa";
         }
 
         MqttAsyncClient client = null;
 
         try {
-            String effectiveClientId = clientId + "-" + Thread.currentThread().getId();
+            //String effectiveClientId = clientId + "-" + Thread.currentThread().getId();
 
             /*
              * Create MQTT client instance.
@@ -130,11 +132,13 @@ public class Publish2Mqtt {
                 connOpts.setPassword(password.toCharArray());
             }
 
-            // Connect to MQTT broker
+            /*
+             * Connect to MQTT broker
+             */
             debugLog("Connecting to broker: " + brokerUrl);
 
             IMqttToken connToken = client.connect(connOpts);
-	    connToken.waitForCompletion(5000);
+	        connToken.waitForCompletion(5000);
 
             /*
              * Build final MQTT topic.
@@ -223,10 +227,10 @@ public class Publish2Mqtt {
             properties.load(input);
 
             brokerUrl = properties.getProperty("brokerUrl");
-            clientId = properties.getProperty("clientId");
-            username = properties.getProperty("username");
-            password = properties.getProperty("password");
-            topic = properties.getProperty("topic");
+            clientId  = properties.getProperty("clientId");
+            username  = properties.getProperty("username");
+            password  = properties.getProperty("password");
+            topic     = properties.getProperty("topic");
 
             // Optional Quality of Service (default=0)
             qosLevel = Integer.parseInt(

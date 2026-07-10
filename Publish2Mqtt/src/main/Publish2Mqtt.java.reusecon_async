@@ -73,14 +73,16 @@ public class Publish2Mqtt {
              */
             try {
                 if (clientId == null || clientId.trim().isEmpty()) {
-                    clientId = InetAddress.getLocalHost().getHostName();
+                    //clientId = InetAddress.getLocalHost().getHostName();
+
+                    clientId = System.getenv("INFORMIXSERVER");
                 }
             } catch (UnknownHostException e) {
 
                 // Fallback value if hostname cannot be determined
-                debugLog( "Could not retrieve hostname, using a default clientId.", true);
+                errorLog( "Could not retrieve hostname, using a default clientId.");
 
-                clientId = "defaultClientId";
+                clientId = "Krakatoa";
             }
 
             /*
@@ -128,8 +130,9 @@ public class Publish2Mqtt {
 
         if (!client.isConnected()) {
             debugLog("Re-Connecting to broker");
-            client.reconnect();
-        }
+            
+            //client.reconnect();
+            client = null;        }
 
         return client;
     }
