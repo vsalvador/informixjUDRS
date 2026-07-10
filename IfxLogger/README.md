@@ -146,7 +146,7 @@ Create the test database and table
 
 ```sql
 
-CREATE DATABASE IF NOT EXISTS testmqtt WITH LOG;
+CREATE DATABASE IF NOT EXISTS testlogger WITH LOG;
 
 -- EXECUTE PROCEDURE sqlj.remove_jar('IfxLogger', 1);
 
@@ -159,13 +159,13 @@ CREATE TABLE IF NOT EXISTS state(
 
 ```
 
-Define the ER replication pushing to MQTT broker. Shell commands to define and start the replicate are:
+Define the ER replication writing all changes to log file using json format. Shell commands to define and start the replicate are:
 
 ```bash
 cdr define replicate repl_state -C always -S row -A -R \
     --jsonsplname=j_log \
-    "P testmqtt@g_informix:informix.state" "select * from informix.state" \
-    "R testmqtt@g_loopback:informix.state" "select * from informix.state"
+    "P testlogger@g_informix:informix.state" "select * from informix.state" \
+    "R testlogger@g_loopback:informix.state" "select * from informix.state"
 
 cdr start replicate repl_state
 ```
