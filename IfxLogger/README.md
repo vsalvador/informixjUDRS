@@ -28,12 +28,6 @@ log.directory=/tmp
 log.basename=IfxLog
 ```
 
-## Notes and Limitations
-
-1. A new MQTT connection is created for every published message.
-2. Only top-level JSON fields can be used as topic placeholders.
-3. Missing placeholder values are not validated and remain unchanged in the topic.
-
 ## Building and installing from source code
 
 ### Requirements
