@@ -36,6 +36,8 @@ install: build
 
 	@echo "Installing to $(INST_DIR)..."
 	cp $(JAR_FILE) $(INST_DIR)/
+	cp lib/json-20210307.jar $(INST_DIR)/
+	cp lib/org.eclipse.paho.client.mqttv3-1.2.5.jar $(INST_DIR)/
 	@echo "Installation complete."
 
 test:
