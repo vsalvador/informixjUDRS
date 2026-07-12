@@ -7,7 +7,7 @@ This extension provides RFC-compliant UUID generation directly from Informix SQL
 Generate a UUID value using:
 
 ```sql
-SELECT uuid_generate();
+SELECT generateUUID();
 ```
 
 Example result:
@@ -48,7 +48,7 @@ If you want to install the UUID procedure in your own database, declare the func
 CREATE FUNCTION getUUID() RETURNING CHAR(36) EXTERNAL NAME 'com.informix.judrs.IfxStrings.getUUID()' language java;
 GRANT EXECUTE ON getUUID TO PUBLIC;
 
-SELECT UUID();
+SELECT getUUID();
 ```
 
 or use the automatic deployment of all J/Foundation methods:
